@@ -1,0 +1,45 @@
+services:
+  insurance-service:
+    container_name: threadpilot-insurance-service
+    image: ${CONTAINER_REGISTRY:-localhost}/threadpilot/insurance-service:__tag__
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '${PORT:-8801}:${PORT:-8801}'
+      - '${MGMT_PORT:-9001}:${MGMT_PORT:-9001}'
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      PORT: ${PORT:-8801}
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      REDIS_URL: ${REDIS_URL}
+    volumes:
+      - insurance-h2-data:/data
+    depends_on:
+      - cache
+    restart: always
+    networks:
+      - guidewire
+
+  cache:
+    container_name: insurance-cache
+    image: redis:latest
+    ports:
+      - '${REDIS_PORT:-6380}:${REDIS_PORT:-6380}'
+    volumes:
+      - insurance-cache-data:/data
+    networks:
+      - guidewire
+
+
+volumes:
+  insurance-h2-data:
+    driver: local
+  insurance-cache-data:
+    driver: local
+
+networks:
+  guidewire:
+    external: false
