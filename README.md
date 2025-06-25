@@ -16,10 +16,15 @@ mvn spring-boot:run
 ```
 
 ## 4\. Access the application
-Open your web browser and navigate to:
+Open your web browser and navigate to Swagger UI:
+```
+http://localhost:8081/swagger-ui/index.html
+```
+
+Open your web browser and navigate to health endpoint to verify the application is running:
 
 ```
-http://localhost:8080
+http://localhost:9001/actuator/health
 ```
 ## 5\. Configure 'business-campaign-discount' toggle with unleash.api-url
 
