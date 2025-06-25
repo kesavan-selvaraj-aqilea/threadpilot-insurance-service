@@ -3,7 +3,7 @@
 ## 1\. Clone the repository
 
 ```sh
-git clone https://github.com/<your-org-or-username>/threadpilot-insurance-service.git
+git clone https://github.com/kesavan-selvaraj-aqilea/threadpilot-insurance-service.git
 cd threadpilot-insurance-service
 ```
 ## 2\. Build the project with Maven
