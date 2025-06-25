@@ -1,0 +1,33 @@
+# Project Setup Guide
+
+## 1\. Clone the repository
+
+```sh
+git clone https://github.com/<your-org-or-username>/threadpilot-insurance-service.git
+cd threadpilot-insurance-service
+```
+## 2\. Build the project with Maven
+```
+mvn clean install
+```
+## 3\. Run the Spring Boot application
+```
+mvn spring-boot:run
+```
+
+## 4\. Access the application
+Open your web browser and navigate to:
+
+```
+http://localhost:8080
+```
+## 5\. Configure 'business-campaign-discount' toggle with unleash.api-url
+
+```properties
+# Configure Unleash with application.properties : (Example)
+unleash.app-name=unleash-onboarding-java
+unleash.instance-id=unleash-onboarding-instance
+unleash.api-url=https://eu.app.unleash-hosted.com/demo/api/
+unleash.api-key=threadpilot:development.4548f91137a26cdcae9b52c5f61c641f8f944ad0072d7860d34d56a8
+
+```
