@@ -30,6 +30,9 @@ class InsuranceServiceTest {
     @MockBean
     private RestTemplate restTemplate;
 
+    @MockBean
+    private FeatureService featureService;
+
     @Test
     void testGetPersonInsurances_Success_NoDiscount_NoCarInfo() {
         List<Insurance> insurances = insuranceService.getPersonInsurances("19850505-5678");
@@ -44,38 +47,49 @@ class InsuranceServiceTest {
 
     @Test
     void testGetPersonInsurances_Success_WithCarInfo() {
-        Map<String, String> vehicleMap = new HashMap<>();
-        vehicleMap.put("registrationNumber", "ABC123Z");
-        vehicleMap.put("make", "Toyota");
-        vehicleMap.put("model", "Corolla");
-        vehicleMap.put("year", "2020");
+        // Arrange
+        Map<String, String> vehicleResponse = new HashMap<>();
+        vehicleResponse.put("registrationNumber", "ABC123Z");
+        vehicleResponse.put("make", "Toyota");
+        vehicleResponse.put("model", "Corolla");
+        vehicleResponse.put("year", "2020");
         when(restTemplate.getForEntity(contains("ABC123Z"), eq(Map.class)))
-                .thenReturn(new ResponseEntity<>(vehicleMap, HttpStatus.OK));
+                .thenReturn(new ResponseEntity<>(vehicleResponse, HttpStatus.OK));
 
+        // Act
         List<Insurance> insurances = insuranceService.getPersonInsurances("19900101-1234");
-        Optional<Insurance> carInsurance = insurances.stream()
+
+        // Assert
+        Optional<Insurance> carInsuranceOpt = insurances.stream()
                 .filter(i -> "Car insurance".equals(i.getType()))
                 .findFirst();
-        assertTrue(carInsurance.isPresent());
-        Vehicle vehicle = carInsurance.get().getVehicle();
-        assertNotNull(vehicle);
+        assertTrue(carInsuranceOpt.isPresent(), "Car insurance should be present");
+        Vehicle vehicle = carInsuranceOpt.get().getVehicle();
+        assertNotNull(vehicle, "Vehicle info should not be null");
         assertEquals("ABC123Z", vehicle.getRegistrationNumber());
         assertEquals("Toyota", vehicle.getMake());
         assertEquals("Corolla", vehicle.getModel());
-        assertEquals("2020", vehicle.getMadeYear());
+        assertEquals("2020", vehicle.getMakeYear());
     }
 
     @Test
     void testGetPersonInsurances_Success_WithDiscount() {
-        System.setProperty("features.business-campaign-discount.enabled", "true");
-        System.setProperty("features.business-campaign-discount.eligible-pids", "19900101-1234");
+        // Arrange: enable the discount campaign via featureService mock
+        when(featureService.isBusinessFeatureEnabled("business-campaign-discount")).thenReturn(true);
 
+        // Act
         List<Insurance> insurances = insuranceService.getPersonInsurances("19900101-1234");
+
+        // Assert
         for (Insurance insurance : insurances) {
             if ("Car insurance".equals(insurance.getType()) || "Personal health insurance".equals(insurance.getType())) {
                 assertEquals(true, insurance.getDiscountApplied());
                 assertEquals("Summer Savings 2025", insurance.getDiscountCampaign());
-                assertEquals(insurance.getType().equals("Car insurance") ? 27.0 : 18.0, insurance.getMonthlyCost());
+                if ("Car insurance".equals(insurance.getType())) {
+                    assertEquals(27.0, insurance.getMonthlyCost());
+                } else {
+                    assertEquals(18.0, insurance.getMonthlyCost());
+                }
             } else {
                 assertNull(insurance.getDiscountApplied());
                 assertNull(insurance.getDiscountCampaign());
@@ -164,5 +178,16 @@ class InsuranceServiceTest {
         assertTrue(carInsurance.isPresent());
         // Fallback returns empty vehicle info, so Vehicle should be null
         assertNull(carInsurance.get().getVehicle());
+    }
+
+    @Test
+    void testGetPersonInsurances_NoDiscount() {
+        when(featureService.isBusinessFeatureEnabled("business-campaign-discount")).thenReturn(false);
+
+        List<Insurance> insurances = insuranceService.getPersonInsurances("19900101-1234");
+        for (Insurance insurance : insurances) {
+            assertNull(insurance.getDiscountApplied());
+            assertNull(insurance.getDiscountCampaign());
+        }
     }
 }

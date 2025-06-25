@@ -1,5 +1,6 @@
 package org.aqilea.threadpilot.insuranceservice.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
@@ -22,5 +23,6 @@ public class Vehicle {
     private String model;
 
     @NotBlank
-    private String madeYear;
+    @JsonProperty("year")
+    private String makeYear;
 }
